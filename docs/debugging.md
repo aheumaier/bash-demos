@@ -57,7 +57,7 @@ will suffice but sometimes something more sophisticated is needed.
 
 In such instances using [the DEBUG trap](http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_12_02.html) is often a good choice.
 
-Attached to this gist is a example script to demonstrate how such a thing would
+[Attached to this is an example script](../examples/debug_examples.sh) to demonstrate how such a thing would
 work.
 
 To easily demonstrate it's working, the `DEBUG_LEVEL` has been set as a parameter.

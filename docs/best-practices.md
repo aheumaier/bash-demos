@@ -69,10 +69,19 @@ Abort the script on errors and undbound variables. Put the following code at the
 
 ```Bash
 #!/bin/bash
-set -o errexit   # abort on nonzero exitstatus
-set -o nounset   # abort on unbound variable
-set -o pipefail  # don't hide errors within pipes
-IFS=$'\n\t' # Internal Field Separator - controls what Bash calls word splitting. 
+# Exit on error. Append "|| true" if you expect an error.
+set -o errexit
+# Exit on error inside any functions or subshells.
+set -o errtrace
+# Do not allow use of undefined vars. Use ${VAR:-} to use an undefined VAR
+set -o nounset
+# Catch the error in case mysqldump fails (but gzip succeeds) in `mysqldump |gzip`
+set -o pipefail
+# Turn on traces, useful while debugging but commented out by default
+# set -o xtrace
+
+# Internal Field Separator - controls what Bash calls word splitting.
+IFS=$'\n\t'  
 ```
 
 A shorter version is shown below, but writing it out makes the script more readable.
