@@ -1,6 +1,6 @@
 #!/bin/bash
 set -u
-# Test script that sets secrets for VW simulation pipeline.
+# Test script that sets secrets for a azure  pipeline.
 
 export TEST_TMP_DIR=$(mktemp -d -t tmp.XXXXXXXXXX)
 cleanExit() {

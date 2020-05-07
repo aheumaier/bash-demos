@@ -1,7 +1,7 @@
 #!/bin/bash
 # 
 # This script is part of the azure-pipline.yaml in src/piplines/infra 
-# setting  secrets for VW simulation pipeline
+# setting  secrets for a azure pipeline
 # used as follows:
 #  ------------------------------------------------------------------------------------------------setsec
 # - stage: KeyvaultSecrets
