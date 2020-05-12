@@ -21,17 +21,17 @@ header-includes:
   * [Coding style](#coding-style)
     + [Starting with the right headers](#starting-with-the-right-headers)
     + [Use Bash Strict Mode (Unless You Love Debugging)](#use-bash-strict-mode--unless-you-love-debugging-)
-    + [Variables](#variables)
-      - [Style](#style)
-      - [Parameter notation](#parameter-notation)
-      - [Safety and Portability](#safety-and-portability)
-    + [Substitution](#substitution)
-    + [Output and redirection](#output-and-redirection)
-        - [Avoid useless pipes](#avoid-useless-pipes)
-    + [Functions](#functions)
-      - [Function packaging](#function-packaging)
-      - [Use sub-shells](#use-sub-shells)
-    + [Cleanup on exit](#cleanup-on-exit)
+  * [Variables](#variables)
+    + [Style](#style)
+    + [Parameter notation](#parameter-notation)
+    + [Safety and Portability](#safety-and-portability)
+  * [Substitution](#substitution)
+  * [Output and redirection](#output-and-redirection)
+    + [Avoid useless pipes](#avoid-useless-pipes)
+  * [Functions](#functions)
+    + [Function packaging](#function-packaging)
+    + [Use sub-shells](#use-sub-shells)
+  * [Cleanup on exit](#cleanup-on-exit)
   * [Use static analysis](#use-static-analysis)
   * [Be careful with coreutils](#be-careful-with-coreutils)
   * [Shell script template](#shell-script-template)
@@ -55,8 +55,6 @@ Use something else.
 Why? You can do a lot of complicated tasks with Bash, and I've had some experience in trying them all out in Bash. It consumes a lot of time and is often very difficult to debug in comparison to dynamic programming languages such as python. You are simply going to waste valuable time, performance and nerve you could have spent better otherwise.
 
 ## Coding style
-
-### Starting with the right headers
 
 Sometimes you'll come across a .sh script with a `/bin/sh` shebang. (That is, a file that starts with `#!/bin/sh`). I believe you should not do that, unless you know what you are doing. If your script starts with `#!/bin/sh`, it's telling the operating system that the script should be run with the `/bin/sh` binary. POSIX says that `/bin/sh` should exist and point to a “POSIX compliant” shell. But on debian, it's a symlink to /bin/dash, and on Arch Linux, it's a symlink to `/usr/bin/Bash`.
 So if you use a `#!/bin/sh` shebang, be prepared to get weird errors when switching distributions, or prove yourself that the code you wrote is indeed “POSIX”. I find it much easier to just stick a `#/bin/Bash` shebang and call it a day.  
@@ -95,7 +93,7 @@ I call this the unofficial bash strict mode. This causes bash to behave in a way
 
 There is a short-term downside: these settings make certain common bash idioms harder to work with. Most have simple workarounds, detailed below: jump to Issues & Solutions.
 
-Hint: if you do want to allow a command to fail, you can simply use a || true to do the trick:
+Hint: if you do want to allow a command to fail, you can simply use a `|| true` to do the trick:
 
 ```Bash
 set -o errexit
@@ -110,9 +108,9 @@ foo.sh: line 4: my_optoin: unbound variable
 
 Hint: you should really use `printf '%s\n' "$my_option"` instead to avoid problems if for instance my_option is -e
 
-### Variables
+## Variables
 
-#### Style
+### Style
 
 - Prefer local variables within functions over global variables
 - If you need global variables, make them readonly like:  `declare -r MYVAR='value'`
@@ -125,10 +123,10 @@ Hint: you should really use `printf '%s\n' "$my_option"` instead to avoid proble
 - Use a single equal sign when checking `if [[ "${NAME}" = "Kevin" ]];` double or triple signs are not needed.
 - Use the new bash builtin test operator `([[ ... ]])` rather than the old single square bracket test operator or explicit call to test.
 
-#### Parameter notation 
+### Parameter notation 
 
 Always use long parameter notation when available. This makes the script more readable, especially for lesser known/used commands that you don't remember all the options for.
-If you are on the CLI, abbreviations make sense for efficiency. Nevertheless, when you are writing reusable scripts, a few extra keystrokes will pay off in readability and avoid ventures into man pages in the future, either by you or your collaborators. Similarly, we prefer set -o nounset over set -u.
+If you are on the CLI, abbreviations make sense for efficiency. Nevertheless, when you are writing reusable scripts, a few extra keystrokes will pay off in readability and avoid ventures into man pages in the future, either by you or your collaborators. Similarly, we prefer `set -o nounset` over `set -u`.
 
 ```Bash
 # Avoid:
@@ -138,7 +136,7 @@ rm -rf -- "${dir}"
 rm --recursive --force -- "${dir}"
 ```
 
-#### Safety and Portability
+### Safety and Portability
 
 1. Use `{}` to enclose your variables. Otherwise, Bash will try to access the `$ENVIRONMENT_app` variable in `/srv/$ENVIRONMENT_app`, whereas you probably intended `/srv/${ENVIRONMENT}_app`. Since it is easy to miss cases like this, we recommend that you make enclosing a habit.
 2. Use set, rather than relying on a shebang like `#!/usr/bin/env bash -e`, since that is neutralized when someone runs your script as `bash yourscript.sh`.
@@ -148,19 +146,19 @@ Use `${BASH_SOURCE[0]}` if you refer to current file, even if it is sourced by a
 
 
 
-### Substitution
+## Substitution
 
 - Always use `$(cmd)` for command substitution (as opposed to backquotes)
 - Prepend a command with `\` to override alias/builtin lookup. E.g.:
 
-    ```ShellSession
+    ```Bash
     $ \time Bash -c "dnf list installed | wc -l"
     5466
     1.32user 0.12system 0:01.45elapsed 99%CPU (0avgtext+0avgdata 97596maxresident)k
     0inputs+136outputs (0major+37743minor)pagefaults 0swaps
     ```
 
-### Output and redirection
+## Output and redirection
 
 - [For various reasons](https://www.in-ulm.de/~mascheck/various/echo+printf/), `printf` is preferable to `echo`. `printf` gives more control over the output, it's more portable and its behaviour is defined better.
 - Print error messages on stderr. E.g., I use the following function:
@@ -198,7 +196,7 @@ Use `${BASH_SOURCE[0]}` if you refer to current file, even if it is sourced by a
     printf "..." | sudo tee /root/some_file > /dev/null
     ```
 
-#### Avoid useless pipes
+### Avoid useless pipes
 
 Very often you can get rid of a pipe if you use the correct syntax. Here are some examples:
 ```Bash
@@ -212,12 +210,12 @@ my_nev_var=${my_var/foo/bar}
 ```
 The last example is one of the many things you can do with Bash variables. Here's a list of the parameter substitutions you can use.
 
-### Functions
+## Functions
 
-Bash can be hard to read and interpret. Using functions strongly improve readability. Principles from Clean Code apply here too.
+Bash can be hard to read and interpret. Using functions strongly improve readability. Principles from [Clean Code](https://www.pearson.com/us/higher-education/program/Martin-Clean-Code-A-Handbook-of-Agile-Software-Craftsmanship/PGM63937.html) apply here too.
 
 - Apply the [Single Responsibility Principle](https://en.wikipedia.org/wiki/Single_responsibility_principle): a function does one thing.
-- [Don't mix levels of abstraction](http://sivalabs.in/clean-code-dont-mix-different-levels-of-abstractions/)
+- [Don't mix levels of abstraction](https://sivalabs.in/2013/12/clean-code-dont-mix-different-levels-of-abstractions/)
 - Describe the usage of each function: number of arguments, return value, output
 - Declare variables with a meaningful name for positional parameters of functions
 
@@ -249,7 +247,7 @@ Bash can be hard to read and interpret. Using functions strongly improve readabi
     fi
     ```
 
-#### Function packaging
+### Function packaging
 It is nice to have a Bash package that can not only be used in the terminal, but also invoked as a command line function. In order to achieve this, the exporting of your functionality should follow this pattern:
 ```Bash
 if [[ "${BASH_SOURCE[0]}" = "${0}" ]]; then
@@ -270,7 +268,7 @@ $ source my_script.sh
 $ my_script some more args --blah
 ```
 
-#### Use sub-shells
+### Use sub-shells
 
 Let's say you want to run the make command in all the subdirectories of your current working directory.
 ```
@@ -305,7 +303,7 @@ done
 ```
 By using parentheses, you've created a “sub-shell” that won't interfere with the main script.
 
-### Cleanup on exit
+## Cleanup on exit
 
 An idiom for tasks that need to be done before the script ends (e.g. removing temporary files, etc.). The exit status of the script is the status of the last statement *before* the `finish` function.
 
@@ -407,3 +405,7 @@ For now, see <https://github.com/bertvv/dotfiles/blob/master/.vim/templates/sh>
 - Rousseau, Thibaut (2017). **Shell Scripts Matter.** <https://dev.to/thiht/shell-scripts-matter>
 - Sheppard, Simon (s.d.). *Bash Keyboard Shortcuts.* <http://ss64.com/Bash/syntax-keyboard.html>
 - When to use Bash: <https://hackaday.com/2017/07/21/linux-fu-better-Bash-scripting/#comment-3793634>
+
+
+
+Learn in the [next chapter](debugging.md) how to debup shell scripts properl.y 

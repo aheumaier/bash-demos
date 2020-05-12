@@ -5,7 +5,7 @@
 ##------------------------------------------------------------------------------
 #
 # @NOTE: The variable naming scheme used in this code is an adaption of Systems 
-# Hungarian which is explained at http://pother.ca/VariableNamingConvention/
+# Hungarian which is explained at https://blog.pother.ca/VariableNamingConvention/
 #
 # ------------------------------------------------------------------------------
 ##
