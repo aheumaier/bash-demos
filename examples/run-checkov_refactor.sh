@@ -5,7 +5,7 @@
 #
 #  Usage ./run_checkov.sh {WORKk_DIR}
 #
-set -euo pipefail
+set -eo pipefail
 
 # The target directory for scanning.
 WORK_DIR=${1-$(pwd)}

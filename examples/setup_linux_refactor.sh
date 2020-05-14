@@ -7,23 +7,23 @@
 #
 #
 # === Break on the first Error ===
-set -euo pipefail
+set -eo pipefail
 
 if [ "${DEBUG}" ]; then
     set -o xtrace # Similar to -v, but expands commands, same as "set -x"
 fi
 
 # === Global vars we need for conan to run ===
-export CONAN_USER_HOME=/opt/conan
+export CONAN_USER_HOME="/opt/conan"
 export ORIG_PATH=$(cut -d '=' -f2 /etc/environment)
 
 # === Cleanup actions ===
 function finish() {
-    sudo /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync
+    # sudo /usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync
     rm -rf "$TMP_DIR"
 }
 # === Enforce clean-up on any circumstances ===
-trap finish EXIT
+# trap finish EXIT
 
 # === Installing Packages ===
 install_system_packages() {
@@ -41,7 +41,7 @@ install_nvidia_repos() {
 install_cuda_repos() {
     wget -O "${TMP_DIR}/${CUDA_PKG}" "${NVIDIA_REPO}/${CUDA_PKG}"
     sudo dpkg -i "${TMP_DIR}/${CUDA_PKG}"
-    sudo apt-key adv --fetch-keys ${NVIDIA_REPO}/7fa2af80.pub
+    sudo apt-key adv --fetch-keys "${NVIDIA_REPO}/7fa2af80.pub"
 }
 
 # === Installing Nvidia driver ===
@@ -95,12 +95,12 @@ run_main() {
     for var in "${required_env_vars[@]}"; do
         if [ -z "${var}" ]; then
             var_name=(${!var@})
-            "Empty required env var found: $var_name. ABORT"
+            echo "Empty required env var found: $var_name. ABORT"
             exit 1
         fi
     done
 
-    local -r enable_nvidia="true"
+    local -r enable_nvidia=false
     declare -ar PACKAGES=(
         wget curl
         # Install GUI
@@ -115,10 +115,11 @@ run_main() {
         python3-pip
     )
     declare -r TMP_DIR=$(mktemp -d -t tmp.XXXXXXXXXX || exit 1)
-
+  
+    install_system_packages
     install_nvidia_repos
     install_cuda_repos
-    install_system_packages
+
     if [ $enable_nvidia ]; then
         install_nvidia_drivers
     fi
