@@ -95,21 +95,29 @@ set_secret_from_sshkey() {
   az.cmd keyvault secret set --name "${secret_name}" --vault-name "${vault_name}" --file "${SSH_KEY_PATH}" --encoding 'utf-8' -o none
 }
 
-run_main() {
-  # Ensure az.cmd command exists(will break on LINUX)
-  command -v "az.cmd" >/dev/null || {
-    echo "[ERROR]: az.cmd command not found."
+# Ensure command exists
+valid_command() {
+  local test_command=@1
+  command -v "${test_command}" >/dev/null || {
+    echo "[ERROR]: ${test_command} command not found."
     exit 1
   }
-  # This is passed by environment vars - we set it readonly just to be sure 
+
+}
+
+run_main() {
+
+  valid_command "az.cmd"
+
+  # This is passed by environment vars - we set it readonly just to be sure
   declare -ra required_env_vars=("${DEVSTACK_USERNAME}" "${DEVSTACK_PASSWORD}" "${COMMON_AZURE_KEYVAULT_NAME}" "${RESULTS_SA_NAME}" "${DATA_SA_NAME}")
 
   for var in "${required_env_vars[@]}"; do
-    if [ -z "${var}" ]; then
-    var_name=(${!var@})
+    [ -z "${var}" ] || {
+      var_name=("${!var@}")
       "Empty required env var found: $var_name. ABORT"
       exit 1
-    fi
+    }
   done
 
   TMP_DIR=$(mktemp -d -t tmp.XXXXXXXXXX)

@@ -20,7 +20,7 @@ profile_script="./run-checkov_refactor.sh"
 }
 
 @test "test run_main() should be successfull " {
-    function find_folders_by() { echo "/tmp ${*}"; }
+    function find_folders_by() { find ./samples/  -type f -name main.tf -printf '%h\n' | sort -u; }
     export -f find_folders_by
     function run_checov() { echo "THIS WOULD run_checov ${*}"; }
     export -f run_checov

@@ -5,6 +5,14 @@ load 'test_helper'
 
 profile_script="./setup_linux_refactor.sh"
 
+setup() {
+    DOCKER_SUT_ID=$(docker run -itd ubuntu:18.04)
+}
+
+function teardown() {
+    docker stop $DOCKER_SUT_ID && docker rm $DOCKER_SUT_ID
+}
+
 @test "test CONAN_USER_HOME is set" {
     source ${profile_script}
     run echo $CONAN_USER_HOME
@@ -16,7 +24,46 @@ profile_script="./setup_linux_refactor.sh"
     run echo $ORIG_PATH
     assert_output "\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games\""
 }
+@test "test install_system_packages() should install provided packes" {
+    skip
+    source ${profile_script}
+    function sudo() { docker_mock "${*}";  }
+    export -f sudo 
+    declare -ar PACKAGES=( wget curl gnupg2 xrdp libusb-0.1-4 libxvidcore4 libaa1 libfaad2 libxss1 libopencore-amrnb0 libopencore-amrwb0 )
+    run install_system_packages
+    assert_success
 
+}
+@test "test install_nvidia_repos() should install nvidia_repos" {
+    NVIDIA_PKG="nvidia-diag-driver-local-repo-ubuntu1804-415.25_1.0-1_amd64.deb"
+    NVIDIA_REPO="http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64"
+    TMP_DIR="/tmp"
+    source ${profile_script}
+    function sudo() { docker_mock "${*}";  }
+    export -f sudo 
+    function wget() { docker_mock "wget" "${*}";  }
+    export -f wget
+    declare -ar PACKAGES=( wget curl gnupg2 )
+    run install_system_packages 
+    run install_nvidia_repos
+    assert_success
+
+}
+@test "test install_cuda_repos() should install cuda_repos" {
+    CUDA_PKG="cuda-repo-ubuntu1804_10.0.130-1_amd64.deb"
+    NVIDIA_REPO="http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64"
+    TMP_DIR="/tmp"
+    source ${profile_script}
+    function sudo() { docker_mock "${*}";  }
+    export -f sudo 
+    function wget() { docker_mock "wget" "${*}";  }
+    export -f wget
+    declare -ar PACKAGES=( wget curl gnupg2 )
+    run install_system_packages 
+    run install_cuda_repos
+    assert_success
+
+}
 @test "test run_main should fail on missin env var" {
     NVIDIA_PKG="nvidia-diag-driver-local-repo-ubuntu1804-415.25_1.0-1_amd64.deb"
     NVIDIA_REPO="http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64"
@@ -28,18 +75,6 @@ profile_script="./setup_linux_refactor.sh"
     assert_failure 
     assert_output "Empty required env var found: var. ABORT"
 }
-
-@test "test packages to install should be complete" {
-    skip
-        source ${profile_script}
-        run echo "${PACKAGES[@]}"
-        assert_output "wget curl kde-plasma-desktop xrdp xterm freeglut3 openssh-server nfs-common mesa-utils xfonts-75dpi libusb-0.1-4 libqtgui4 libqt4-dev libgsm1 libpulse0 libcrystalhd3 libmpg123-0 libdvdread4
-        libxvidcore4 libaa1 libfaad2 libxss1 libopencore-amrnb0 libopencore-amrwb0
-        libspeex1 libjack-jackd2-0 libdv4 libdca0 libtheora0 libxvmc1 libbs2b0 libmp3lame0
-        libmad0 liblircclient0 libsmbclient libsdl1.2debian libtwolame0 libenca0 python3-pip"
-
-}
-
 @test "test run_main should be successfull" {
     source ${profile_script}
     NVIDIA_PKG="nvidia-diag-driver-local-repo-ubuntu1804-415.25_1.0-1_amd64.deb"
@@ -63,5 +98,4 @@ profile_script="./setup_linux_refactor.sh"
     export -f install_vtd
     run run_main
     assert_success
-
 }
